@@ -36,7 +36,11 @@ export default function TokenSearchSelect({ masterSymbol, onChoose, onClose }) {
 
   async function handlePick(token) {
     try {
-      if (!masterSymbol) { onChoose(token); onClose?.(); return; }
+      if (!masterSymbol) {
+        onChoose(token);
+        onClose?.();
+        return;
+      }
       setCheckingMint(token.mint);
       const ok = await checkRoute(masterSymbol, token.mint);
       setCheckingMint(null);
@@ -64,34 +68,49 @@ export default function TokenSearchSelect({ masterSymbol, onChoose, onClose }) {
   return (
     <div className="selector-inline" onClick={(e) => e.stopPropagation()}>
       <div className="selector-inline__label" style={{ width: "100%" }}>
-        <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6 }}>
-          <div style={{ fontSize: 12, color: "#9aa1ad" }}>
-            Pick a coin (pairs with {masterSymbol || "—"})
-          </div>
-          <div style={{ marginLeft: "auto", fontSize: 11, color: "#6b7280" }}>{hint}</div>
-        </div>
 
+        {/* --- Search input --- */}
         <input
           autoFocus
           placeholder="Search by symbol, name, or mint… e.g. SAMO, ORCA"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           style={{
-            width: "100%", padding: "10px 12px", background: "#0b1015",
-            color: "white", border: "1px solid #1f2430", borderRadius: 10, outline: "none"
+            width: "100%",
+            padding: "10px 12px",
+            background: "#0b1015",
+            color: "white",
+            border: "1px solid #1f2430",
+            borderRadius: 10,
+            outline: "none",
+            marginBottom: 10
           }}
         />
 
-        <div style={{ marginTop: 10, maxHeight: 220, overflowY: "auto", display: "grid", gap: 6 }}>
+        {/* --- Results list --- */}
+        <div
+          style={{
+            maxHeight: 220,
+            overflowY: "auto",
+            display: "grid",
+            gap: 6,
+            marginBottom: 10
+          }}
+        >
           {results.map((t) => (
             <button
               key={t.mint}
               onClick={() => handlePick(t)}
               disabled={checkingMint === t.mint}
               style={{
-                textAlign: "left", padding: "10px 12px", borderRadius: 10,
-                background: "#0f1318", color: "white", border: "1px solid #1f2430",
-                cursor: "pointer", opacity: checkingMint === t.mint ? 0.6 : 1
+                textAlign: "left",
+                padding: "10px 12px",
+                borderRadius: 10,
+                background: "#0f1318",
+                color: "white",
+                border: "1px solid #1f2430",
+                cursor: "pointer",
+                opacity: checkingMint === t.mint ? 0.6 : 1
               }}
             >
               <div style={{ fontWeight: 700, letterSpacing: 0.3 }}>{t.symbol}</div>
@@ -100,12 +119,18 @@ export default function TokenSearchSelect({ masterSymbol, onChoose, onClose }) {
           ))}
         </div>
 
+        {/* --- Footer actions --- */}
+        <div style={{ fontSize: 11, color: "#6b7280", marginBottom: 8 }}>{hint}</div>
         <button
           onClick={onClose}
           style={{
-            marginTop: 10, width: "100%", padding: "8px 10px",
-            borderRadius: 10, border: "1px solid #1f2430",
-            background: "#12161b", color: "#cbd5e1", cursor: "pointer"
+            width: "100%",
+            padding: "8px 10px",
+            borderRadius: 10,
+            border: "1px solid #1f2430",
+            background: "#12161b",
+            color: "#cbd5e1",
+            cursor: "pointer"
           }}
         >
           Cancel

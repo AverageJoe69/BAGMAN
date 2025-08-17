@@ -368,3 +368,25 @@ body {
     inset 0 1px 0 rgba(255,255,255,0.03),
     0 10px 28px rgba(255,90,90,0.18);
 }
+/* === Bag badge === */
+.bag-badge {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 13px;
+  color: #eef2f7;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: radial-gradient(100% 100% at 50% 0%, rgba(255,255,255,0.06), rgba(0,0,0,0.35));
+  box-shadow:
+    0 6px 16px rgba(0,0,0,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+  z-index: 2; /* above shell */
+}
+.bag-badge.bag--up   { border-color: #36c878; }
+.bag-badge.bag--down { border-color: #d14b4b; }

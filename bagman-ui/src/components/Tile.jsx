@@ -1,6 +1,8 @@
 // src/components/Tile.jsx
 import React, { useEffect, useRef } from "react";
 import TokenSearchSelect from "./TokenSearchSelect.jsx";
+import BagBadge from "./BagBadge.jsx";
+import { computeBagValue } from "../hooks/useBags.js";
 
 export default function Tile({
   coin,
@@ -8,13 +10,15 @@ export default function Tile({
   onClick,
   onChooseToken,
   onClear,
+  onDropBag,        // <-- new
   index,
   masterSymbol,
   running = false,
-  changePct = 0,
+  changePct = 0,    // (already clamped in Home)
   price = null,
   baseline = null,
   leverage = 1,
+  bagUnits = 0,     // <-- new
 }) {
   const wrapperRef = useRef(null);
 
@@ -38,12 +42,11 @@ export default function Tile({
 
   const showGhost = !running;
 
-  // Apply leverage for visuals (Home feeds % vs baseline)
+  // Apply leverage to % change for visuals/value
   const scaledChange = (changePct || 0) * (leverage || 1);
   const isUp = scaledChange >= 0;
-  const absClamped = Math.min(50, Math.abs(scaledChange));
 
-  // Outer tint class (keeps your existing up/down look)
+  // Tint class based on leveraged change
   const signClass =
     running && coin
       ? scaledChange > 0
@@ -53,10 +56,19 @@ export default function Tile({
         : "tile--flat"
       : "";
 
-  // Sensitivity for shell scaling (same as before)
+  // Shell growth
   const SENS_DIVISOR = 10;
-  const scaleMag = 1 + Math.abs(scaledChange) / SENS_DIVISOR; // >= 1
+  const scaleMag = 1 + Math.abs(scaledChange) / SENS_DIVISOR;
   const growOrigin = isUp ? "bottom center" : "top center";
+
+  // 💰 current bag value for display (integer dollars)
+  const bagValueNow = computeBagValue(bagUnits, scaledChange);
+
+  const handleDoubleClick = (e) => {
+    e.stopPropagation();
+    if (!coin || isSelecting) return;
+    onDropBag?.(index);
+  };
 
   return (
     <div
@@ -65,6 +77,7 @@ export default function Tile({
         isSelecting ? "tile--open" : ""
       } ${running && coin ? "tile--live" : ""} ${signClass}`}
       onClick={() => showGhost && onClick(index)}
+      onDoubleClick={handleDoubleClick}
       role="button"
       tabIndex={0}
       aria-label={coin ? `${coin.symbol} tile` : "Empty tile"}
@@ -94,6 +107,11 @@ export default function Tile({
                 Clear
               </button>
             </div>
+
+            {/* Bag even when not running */}
+            {bagUnits > 0 && (
+              <BagBadge value={bagValueNow} positive={scaledChange >= 0} />
+            )}
           </div>
         ) : (
           <div className="tile__placeholder">
@@ -103,7 +121,7 @@ export default function Tile({
         )
       ) : coin ? (
         <>
-          {/* The actual visual box that scales up/down from midline */}
+          {/* Scaled shell */}
           <div
             className="tile__shell"
             style={{
@@ -113,7 +131,7 @@ export default function Tile({
               pointerEvents: "none",
             }}
           />
-          {/* Text/UI overlay stays pinned */}
+          {/* Overlay (text stays pinned) */}
           <div className="tile__overlay">
             <div className="tile__run">
               <div className="tile__runTop">
@@ -122,7 +140,11 @@ export default function Tile({
                   {baseline != null && price != null ? "Live" : "…"}
                 </span>
               </div>
-              <div className="meter__label">{scaledChange.toFixed(2)}%</div>
+
+              {/* Bag while running */}
+              {bagUnits > 0 && (
+                <BagBadge value={bagValueNow} positive={scaledChange >= 0} />
+              )}
             </div>
           </div>
         </>

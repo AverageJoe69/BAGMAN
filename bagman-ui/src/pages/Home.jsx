@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Tile from "../components/Tile.jsx";
 import { loadTokens, getTokenSourceInfo, priceTokensPerBase } from "../utils/jupiter.js";
+import useBags from "../hooks/useBags.js";
 
 const DEFAULT_TILES = 10;
 const MASTER_BASE = "SOL";        // fixed base
@@ -19,10 +20,13 @@ export default function Home() {
   const [baseline, setBaseline] = useState({});   // mint -> price at t0 (token per 1 SOL)
   const [lastPrice, setLastPrice] = useState({}); // mint -> latest price
   const [pctChange, setPctChange] = useState({}); // mint -> % change vs baseline (unclamped)
-  const [lastTickAt, setLastTickAt] = useState(null); // UI heartbeat
+  const [lastTickAt, setLastTickAt] = useState(null); // UI heartbeat (not shown, but kept)
 
   // leverage
   const [leverage, setLeverage] = useState(1);
+
+  // 💰 bags: index -> number of $10 units (handled by hook)
+  const { increment: incBag, clear: clearBag, getUnits } = useBags();
 
   // refs for robust polling
   const timeoutRef = useRef(null);
@@ -35,7 +39,7 @@ export default function Home() {
   useEffect(() => { runningRef.current = isRunning; }, [isRunning]);
   useEffect(() => { t0Ref.current = baseline; }, [baseline]);
 
-  // prime token list (for banner only)
+  // Prime token list (kept; no top banner is rendered)
   useEffect(() => {
     (async () => {
       await loadTokens();
@@ -68,7 +72,15 @@ export default function Home() {
       next[index] = null;
       return next;
     });
+    // also remove any bag on this tile
+    clearBag(index);
     closeTile();
+  };
+
+  // 💰 Double-click handler: +$10 per double-click (1 unit)
+  const handleDropBag = (index) => {
+    if (!selectionsRef.current[index]) return; // only if a coin is selected
+    incBag(index, 1);
   };
 
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -165,16 +177,9 @@ export default function Home() {
 
   return (
     <div className="app">
+      {/* Minimal header: leverage buttons only */}
       <header className="app__header">
-        <h1 className="title">Bag Man — Session Setup</h1>
-        <p className="subtitle">
-          Base: {MASTER_BASE} • Select up to {DEFAULT_TILES} coins (chosen: {selectedCount}/{DEFAULT_TILES})
-          {isRunning ? " • Live session running" : ""}
-          {lastTickAt ? ` • Last tick: ${new Date(lastTickAt).toLocaleTimeString()}` : ""}
-        </p>
-
-        {/* Leverage buttons */}
-        <div className="leverage-controls" style={{ marginTop: 8 }}>
+        <div className="leverage-controls" style={{ marginTop: 0 }}>
           {[1, 10, 25, 50, 100].map((x) => (
             <button
               key={x}
@@ -190,27 +195,6 @@ export default function Home() {
 
       <main className="stage">
         <div className="stage__inner" style={{ width: "100%" }}>
-          {sourceInfo.usingFallback ? (
-            <div
-              className="session-banner"
-              style={{
-                background: "#2a2431",
-                color: "#c7b8ff",
-                border: "1px solid #4b3f6a",
-                padding: "8px 12px",
-                borderRadius: 8,
-                fontSize: 12,
-                marginBottom: 8,
-              }}
-            >
-              Local token list is blocked, but <b>live search is active</b>. Type a token’s symbol/name/mint to add it.
-            </div>
-          ) : (
-            <div style={{ color: "#94a3b8", fontSize: 12, marginBottom: 8 }}>
-              Loaded {sourceInfo.count} tokens from Jupiter.
-            </div>
-          )}
-
           <div className="block-line">
             {tiles.map((tile, idx) => {
               const mint = tile.coin?.mint;
@@ -231,6 +215,8 @@ export default function Home() {
                   }}
                   onChooseToken={handleChooseToken}
                   onClear={handleClear}
+                  onDropBag={handleDropBag}
+                  bagUnits={getUnits(idx)}
                   index={idx}
                   masterSymbol={MASTER_BASE}
                   running={isRunning}
