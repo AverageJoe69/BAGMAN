@@ -1,0 +1,370 @@
+:root {
+  --bg: #0b0d10;
+  --card: #12151a;
+  --muted: #6b7280;
+  --text: #eef2f7;
+  --border: #1f2430;
+  --accent: #4ade80;
+  --danger: #ef4444;
+  --brand: #60a5fa;
+  --chamfer: 8px;
+
+  --header-h: 56px;
+  --footer-h: 68px;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial;
+}
+
+/* App layout */
+.app {
+  min-height: 100svh;
+  display: grid;
+  grid-template-rows: var(--header-h) 1fr var(--footer-h);
+}
+
+/* Header */
+.app__header {
+  height: var(--header-h);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+}
+.title { font-size: 18px; margin: 0; }
+.subtitle { margin: 0; color: var(--muted); font-size: 13px; }
+
+/* Stage */
+.stage {
+  min-height: 0;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+.stage__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  overflow: visible;
+}
+
+/* Row of 10 tiles */
+.block-line {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px;
+  overflow: visible;
+}
+@media (max-width: 900px) {
+  .block-line {
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+  }
+}
+
+/* Tiles */
+.tile {
+  position: relative;
+  width: calc((100% - (9 * 12px)) / 10);
+  aspect-ratio: 1 / 1;
+
+  background: linear-gradient(180deg, #181c22 0%, #101418 100%);
+  border: 1px solid #232a33;
+
+  -webkit-clip-path: polygon(
+    var(--chamfer) 0%, calc(100% - var(--chamfer)) 0%,
+    100% var(--chamfer), 100% calc(100% - var(--chamfer)),
+    calc(100% - var(--chamfer)) 100%, var(--chamfer) 100%,
+    0% calc(100% - var(--chamfer)), 0% var(--chamfer)
+  );
+  clip-path: polygon(
+    var(--chamfer) 0%, calc(100% - var(--chamfer)) 0%,
+    100% var(--chamfer), 100% calc(100% - var(--chamfer)),
+    calc(100% - var(--chamfer)) 100%, var(--chamfer) 100%,
+    0% calc(100% - var(--chamfer)), 0% var(--chamfer)
+  );
+  border-radius: 2px;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    inset 0 -2px 4px rgba(0,0,0,0.35),
+    0 8px 24px rgba(0,0,0,0.25);
+
+  display: flex; align-items: center; justify-content: center;
+  color: #e8edf5; cursor: pointer;
+  transition: transform .08s ease, border-color .08s ease, box-shadow .12s ease, background .12s ease;
+  scroll-snap-align: center;
+  overflow: visible;
+}
+
+/* ✅ Only addition: when live, remove the parent's clip-path so inner growth isn't chopped */
+.tile--live {
+  -webkit-clip-path: none;
+  clip-path: none;
+}
+
+.tile--open {
+  z-index: 100;
+  -webkit-clip-path: none;
+  clip-path: none;
+  border-radius: 14px;
+  border-color: #2f3746;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    0 12px 32px rgba(0,0,0,0.45);
+}
+
+@media (max-width: 900px) {
+  .tile { flex: 0 0 92px; width: 92px; margin-right: 12px; }
+  .tile:last-child { margin-right: 0; }
+}
+
+.tile--empty { opacity: 0.78; }
+.tile--selected {
+  border-color: #2f3746;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    inset 0 -2px 6px rgba(0,0,0,0.45),
+    0 10px 28px rgba(0,0,0,0.3);
+}
+.tile:hover {
+  border-color: #3a4454;
+  background: linear-gradient(180deg, #1a2027 0%, #12161b 100%);
+}
+.tile:active { transform: scale(0.98); }
+
+/* Content */
+.tile__placeholder { display:flex; flex-direction:column; align-items:center; gap:6px; }
+.plus { font-size:24px; line-height:1; color: var(--brand); }
+.tile__hint { font-size:12px; color: var(--muted); }
+.tile--selected .tile__symbol { font-weight:700; font-size:22px; letter-spacing:.5px; }
+.tile--selected .tile__name { font-size:12px; color: var(--muted); margin-top:2px; }
+.tile__content { display:flex; flex-direction:column; align-items:center; gap:8px; }
+
+.tile__actions { display:flex; gap:8px; }
+.pill { font-size:11px; padding:4px 8px; border-radius:999px; background:#0f172a; border:1px solid var(--border); }
+.pill--danger { color:#fff; background: var(--danger); border-color: transparent; }
+
+/* Inline selector */
+.selector-inline {
+  position: absolute;
+  inset: -12px;
+  background: #0f1318;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  padding: 10px;
+  z-index: 200;
+}
+.selector-inline__label { font-size:12px; color:var(--muted); display:grid; gap:6px; width:100%; }
+.selector-inline input,
+.selector-inline select {
+  width: 100%; padding: 10px 12px;
+  background: #0b1015; color: var(--text);
+  border: 1px solid var(--border); border-radius: 10px; outline: none;
+}
+
+/* Footer */
+.footer {
+  height: var(--footer-h);
+  padding: 0 16px;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  padding-bottom: max(0px, env(safe-area-inset-bottom));
+}
+.primary {
+  appearance: none; border: none;
+  background: var(--accent); color: #0a0f0c; font-weight: 700;
+  padding: 12px 16px; border-radius: 12px; font-size: 16px;
+}
+.primary:disabled { opacity:.5; filter: grayscale(.3); cursor: not-allowed; }
+
+/* Banner helper */
+.session-banner { position: relative; z-index: 1; }
+
+/* Meter */
+.meter {
+  position: relative;
+  width: 70%;
+  height: 70%;
+  margin: 8px auto 0;
+}
+.meter__midline {
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  height: 1px;
+  background: rgba(255,255,255,0.12);
+}
+.meter__bar {
+  position: absolute;
+  left: 25%;
+  right: 25%;
+  border-radius: 6px;
+  transition: height .25s ease, background .2s ease, top .25s ease, bottom .25s ease;
+}
+.meter__bar.up   { background: linear-gradient(180deg, #3cf781, #0bbf5d); box-shadow: 0 6px 16px rgba(0,255,140,0.25); }
+.meter__bar.down { background: linear-gradient(180deg, #ff5a5a, #c73232); box-shadow: 0 6px 16px rgba(255,90,90,0.25); }
+.meter__label {
+  position: absolute;
+  bottom: 6px; right: 6px;
+  font-size: 12px; color: #aeb8c6;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid var(--border);
+  padding: 2px 6px; border-radius: 6px;
+}
+
+/* Running layout */
+.tile__run { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
+.tile__runTop { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 6px 8px 0; }
+.tile__mini { font-size: 11px; color: #778297; }
+
+/* Up/Down base tints */
+.tile--up {
+  background: linear-gradient(180deg, #17231a 0%, #101a14 100%) !important;
+  border-color: #1e7d4d !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    0 10px 28px rgba(0, 255, 140, 0.18);
+}
+.tile--down {
+  background: linear-gradient(180deg, #2a1919 0%, #1a1010 100%) !important;
+  border-color: #8c3333 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.03),
+    0 10px 28px rgba(255, 90, 90, 0.18);
+}
+.tile--flat {}
+
+/* Leverage buttons */
+.leverage-controls { display: flex; gap: 8px; margin-top: 10px; }
+.leverage-controls .pill {
+  padding: 4px 10px; border-radius: 6px;
+  border: 1px solid #444; background: #222; color: #eee; cursor: pointer;
+}
+.leverage-controls .pill.active { background: #4ade80; color: #000; font-weight: bold; }
+
+/* Meter area container (text/header stays steady) */
+.tile__growArea {
+  width: 100%;
+  height: calc(100% - 32px);
+  display: flex; align-items: center; justify-content: center;
+  overflow: visible;
+}
+.tile__growBox { width: 100%; height: 100%; }
+
+/* === Midline-scaling tint (under content) === */
+.tile__tintScale {
+  position: absolute;
+  left: 0; right: 0;
+  /* height & top/bottom are set inline based on sign and |%| */
+  border-radius: inherit;
+  z-index: 0;
+  pointer-events: none;
+  transition: height .22s ease, top .22s ease, bottom .22s ease, background .15s ease;
+  background: rgba(0,0,0,0);
+}
+.tile__tintScale.up   { background: rgba(34, 197, 94, 0.22); }
+.tile__tintScale.down { background: rgba(239, 68, 68, 0.22); }
+
+/* Keep content above tint */
+.tile__content, .tile__run, .tile__placeholder { position: relative; z-index: 1; }
+/* The layout box stays the same size; visuals move to the shell */
+.tile { position: relative; }
+
+/* Visual shell that we scale (background + border + chamfer) */
+.tile__shell {
+  position: absolute;
+  inset: 0;
+  border-radius: 2px;
+
+  /* copy your original tile background + border + chamfer */
+  background: linear-gradient(180deg, #181c22 0%, #101418 100%);
+  border: 1px solid #232a33;
+
+  -webkit-clip-path: polygon(
+    var(--chamfer) 0%,
+    calc(100% - var(--chamfer)) 0%,
+    100% var(--chamfer),
+    100% calc(100% - var(--chamfer)),
+    calc(100% - var(--chamfer)) 100%,
+    var(--chamfer) 100%,
+    0% calc(100% - var(--chamfer)),
+    0% var(--chamfer)
+  );
+  clip-path: polygon(
+    var(--chamfer) 0%,
+    calc(100% - var(--chamfer)) 0%,
+    100% var(--chamfer),
+    100% calc(100% - var(--chamfer)),
+    calc(100% - var(--chamfer)) 100%,
+    var(--chamfer) 100%,
+    0% calc(100% - var(--chamfer)),
+    0% var(--chamfer)
+  );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    inset 0 -2px 4px rgba(0,0,0,0.35),
+    0 8px 24px rgba(0,0,0,0.25);
+
+  z-index: 0;           /* stays behind overlay */
+  transform: scaleY(1); /* default height */
+  transform-origin: center;
+  transition: transform 220ms ease;
+  pointer-events: none; /* clicks go to overlay */
+}
+
+/* When a tile is open, keep old behavior to let selector spill */
+.tile--open .tile__shell {
+  -webkit-clip-path: none;
+  clip-path: none;
+  border-radius: 14px;
+  border-color: #2f3746;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    0 12px 32px rgba(0,0,0,0.45);
+}
+
+/* Overlay holds text + meter (never scaled) */
+.tile__overlay {
+  position: relative;
+  inset: 0;
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1;
+}
+
+/* Keep your up/down tints by reusing classes on the shell */
+.tile--up  .tile__shell {
+  background: linear-gradient(180deg, #17231a 0%, #101a14 100%) !important;
+  border-color: #1e7d4d !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    0 10px 28px rgba(0,255,140,0.18);
+}
+.tile--down .tile__shell {
+  background: linear-gradient(180deg, #2a1919 0%, #1a1010 100%) !important;
+  border-color: #8c3333 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.03),
+    0 10px 28px rgba(255,90,90,0.18);
+}
